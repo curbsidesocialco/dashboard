@@ -35,23 +35,30 @@ heroVideo.addEventListener('canplay', () => {
   heroVideo.play().catch(() => {});
 });
 
-// ---- Work frames: light up per-video when the file exists ----
+// ---- Work frames: play in view, reveal once the first frame is ready ----
+// Mobile Safari won't load a preload="metadata" video past its metadata until
+// play() is called, so canplay never fires and the clip stays hidden. Fix:
+// trigger play() when the frame scrolls in (kicks the load on mobile) and reveal
+// on loadeddata or a successful play. Genuinely-missing files stay on placeholder.
 document.querySelectorAll('.work-frame').forEach(frame => {
   const video = frame.querySelector('video');
   if (!video) return;
-  video.addEventListener('canplay', () => frame.classList.add('has-video'));
+  video.muted = true; // iOS needs muted set as a property, not just the attribute
+  video.addEventListener('loadeddata', () => frame.classList.add('has-video'));
 });
 
-// Play work videos only while on screen (saves battery, feels alive)
 const workObserver = new IntersectionObserver(entries => {
   entries.forEach(entry => {
     const frame = entry.target;
     const video = frame.querySelector('video');
-    if (!video || !frame.classList.contains('has-video')) return;
-    if (entry.isIntersecting) video.play().catch(() => {});
-    else video.pause();
+    if (!video) return;
+    if (entry.isIntersecting) {
+      video.play().then(() => frame.classList.add('has-video')).catch(() => {});
+    } else {
+      video.pause();
+    }
   });
-}, { threshold: 0.35 });
+}, { threshold: 0.25 });
 document.querySelectorAll('.work-frame').forEach(f => workObserver.observe(f));
 
 // ---- Trusted-by strip: show only if at least one logo file exists ----
