@@ -30,6 +30,8 @@ panel.querySelectorAll('a').forEach(a => a.addEventListener('click', closePanel)
 // ---- Hero video: switch on only when it can actually play ----
 const hero = document.getElementById('hero');
 const heroVideo = hero.querySelector('.hero-video');
+// Reveal the hero film once it can play (mobile included). Files are kept small
+// so this loads fast on cellular.
 heroVideo.addEventListener('canplay', () => {
   hero.classList.remove('no-video');
   heroVideo.play().catch(() => {});
